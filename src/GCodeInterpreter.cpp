@@ -15,17 +15,10 @@ std::vector<GCommand> GCodeInterpreter::parseFile(const std::string& filename) {
     std::string line;
 
     while (std::getline(file, line)) {
-        // Remove everything after ';' (comment)
         size_t commentPos = line.find(';');
-        if (commentPos != std::string::npos) {
+        if (commentPos != std::string::npos)
             line = line.substr(0, commentPos);
-        }
 
-        // Remove leading/trailing spaces
-        line.erase(0, line.find_first_not_of(" \t"));
-        line.erase(line.find_last_not_of(" \t") + 1);
-
-        // Skip empty lines
         if (line.empty()) continue;
 
         GCommand cmd = parseLine(line);
@@ -41,42 +34,25 @@ GCommand GCodeInterpreter::parseLine(const std::string& line) {
     std::string word;
 
     while (ss >> word) {
-        if (word.empty()) continue;
-
-        char type = word[0];
+        char type = std::toupper(word[0]);
         std::string value = word.substr(1);
-
-        // Make uppercase for safety
-        type = std::toupper(type);
 
         try {
             switch (type) {
-                case 'G':
-                    cmd.code = 'G';
-                    cmd.number = std::stoi(value);
-                    break;
-                case 'M':
-                    cmd.code = 'M';
-                    cmd.number = std::stoi(value);
-                    break;
-                case 'X':
-                    cmd.x = std::stod(value);
-                    break;
-                case 'Y':
-                    cmd.y = std::stod(value);
-                    break;
-                case 'Z':
-                    cmd.z = std::stod(value);
-                    break;
-                case 'F':
-                    cmd.feed = std::stod(value);
-                    break;
-                default:
-                    // ignore unknown words
-                    break;
+                case 'G': cmd.code = 'G'; cmd.number = std::stoi(value); break;
+                case 'M': cmd.code = 'M'; cmd.number = std::stoi(value); break;
+
+                case 'X': cmd.x = std::stod(value); break;
+                case 'Y': cmd.y = std::stod(value); break;
+                case 'Z': cmd.z = std::stod(value); break;
+
+                case 'I': cmd.i = std::stod(value); break;
+                case 'J': cmd.j = std::stod(value); break;
+
+                case 'F': cmd.feed = std::stod(value); break;
             }
         } catch (...) {
-            std::cerr << "Warning: Could not parse '" << word << "' in line: " << line << std::endl;
+            std::cerr << "Parse warning: " << word << std::endl;
         }
     }
 

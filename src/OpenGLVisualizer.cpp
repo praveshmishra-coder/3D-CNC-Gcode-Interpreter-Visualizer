@@ -2,6 +2,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <cmath>
 
 // Camera state
 float camDistance = 120.0f;
@@ -119,38 +120,85 @@ void OpenGLVisualizer::drawPath3D(const std::vector<GCommand>& commands) {
         // glColor3f(0,1,0); glVertex3f(0,0,0); glVertex3f(0,80,0); // Y
         // glColor3f(0,0,1); glVertex3f(0,0,0); glVertex3f(0,0,80); // Z
         // glEnd();
+        
+// ---- TOOLPATH ----
+glColor3f(1, 1, 1);
 
-        // ---- TOOLPATH ----
-        glColor3f(1, 1, 1);
+float lastX = 0, lastY = 0, lastZ = 0;
+bool hasLast = false;
+
+for (auto& cmd : commands) {
+
+    // G0 = move (no draw)
+    if (cmd.code == 'G' && cmd.number == 0) {
+        lastX = cmd.x;
+        lastY = cmd.y;
+        lastZ = cmd.z;
+        hasLast = true;
+        continue;
+    }
+
+    // G1 = straight line
+    if (cmd.code == 'G' && cmd.number == 1 && hasLast) {
 
         glBegin(GL_LINES);
+        glVertex3f(lastX, lastY, lastZ);
+        glVertex3f(cmd.x, cmd.y, cmd.z);
+        glEnd();
 
-        float lastX = 0, lastY = 0, lastZ = 0;
-        bool hasLast = false;
+        lastX = cmd.x;
+        lastY = cmd.y;
+        lastZ = cmd.z;
+        continue;
+    }
 
-        for (auto& cmd : commands) {
+    // G2 / G3 = ARC
+    if (cmd.code == 'G' && (cmd.number == 2 || cmd.number == 3)) {
 
-            // If G0 = move only, update position but DON'T draw
-            if (cmd.code == 'G' && cmd.number == 0) {
-                lastX = cmd.x;
-                lastY = cmd.y;
-                lastZ = cmd.z;
-                hasLast = true;
-                continue;
-            }
+        float sx = lastX;
+        float sy = lastY;
 
-            // If G1 = draw cutting line
-            if (cmd.code == 'G' && cmd.number == 1 && hasLast) {
-                glVertex3f(lastX, lastY, lastZ);
-                glVertex3f(cmd.x, cmd.y, cmd.z);
+        float ex = cmd.x;
+        float ey = cmd.y;
 
-                lastX = cmd.x;
-                lastY = cmd.y;
-                lastZ = cmd.z;
-            }
+        float cx = sx + cmd.i;
+        float cy = sy + cmd.j;
+
+        float radius = sqrt((sx - cx)*(sx - cx) + (sy - cy)*(sy - cy));
+
+        float startAngle = atan2(sy - cy, sx - cx);
+        float endAngle   = atan2(ey - cy, ex - cx);
+
+        bool clockwise = (cmd.number == 2);
+
+        // Angle wrapping fix
+        if (clockwise && endAngle > startAngle)
+            endAngle -= 2 * M_PI;
+
+        if (!clockwise && endAngle < startAngle)
+            endAngle += 2 * M_PI;
+
+        int segments = 180;
+        float step = (endAngle - startAngle) / segments;
+
+        glBegin(GL_LINE_STRIP);
+
+        for (int i = 0; i <= segments; i++) {
+            float angle = startAngle + step * i;
+
+            float nx = cx + cos(angle) * radius;
+            float ny = cy + sin(angle) * radius;
+
+            glVertex3f(nx, ny, lastZ);
         }
 
         glEnd();
+
+        lastX = ex;
+        lastY = ey;
+    }
+}
+
 
         glfwSwapBuffers(window);
         glfwPollEvents();

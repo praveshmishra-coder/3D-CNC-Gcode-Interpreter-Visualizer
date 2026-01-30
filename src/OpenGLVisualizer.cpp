@@ -114,18 +114,42 @@ void OpenGLVisualizer::drawPath3D(const std::vector<GCommand>& commands) {
         glRotatef(rotY, 0, 1, 0);
 
         // ---- AXIS ----
-        glBegin(GL_LINES);
-        glColor3f(1,0,0); glVertex3f(0,0,0); glVertex3f(80,0,0); // X
-        glColor3f(0,1,0); glVertex3f(0,0,0); glVertex3f(0,80,0); // Y
-        glColor3f(0,0,1); glVertex3f(0,0,0); glVertex3f(0,0,80); // Z
-        glEnd();
+        // glBegin(GL_LINES);
+        // glColor3f(1,0,0); glVertex3f(0,0,0); glVertex3f(80,0,0); // X
+        // glColor3f(0,1,0); glVertex3f(0,0,0); glVertex3f(0,80,0); // Y
+        // glColor3f(0,0,1); glVertex3f(0,0,0); glVertex3f(0,0,80); // Z
+        // glEnd();
 
         // ---- TOOLPATH ----
-        glColor3f(1, 1, 1); // white toolpath
-        glBegin(GL_LINE_STRIP);
+        glColor3f(1, 1, 1);
+
+        glBegin(GL_LINES);
+
+        float lastX = 0, lastY = 0, lastZ = 0;
+        bool hasLast = false;
+
         for (auto& cmd : commands) {
-            glVertex3f(cmd.x, cmd.y, cmd.z);
+
+            // If G0 = move only, update position but DON'T draw
+            if (cmd.code == 'G' && cmd.number == 0) {
+                lastX = cmd.x;
+                lastY = cmd.y;
+                lastZ = cmd.z;
+                hasLast = true;
+                continue;
+            }
+
+            // If G1 = draw cutting line
+            if (cmd.code == 'G' && cmd.number == 1 && hasLast) {
+                glVertex3f(lastX, lastY, lastZ);
+                glVertex3f(cmd.x, cmd.y, cmd.z);
+
+                lastX = cmd.x;
+                lastY = cmd.y;
+                lastZ = cmd.z;
+            }
         }
+
         glEnd();
 
         glfwSwapBuffers(window);

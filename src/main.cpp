@@ -5,7 +5,7 @@
 int main() {
 
     GCodeInterpreter parser;
-    auto commands = parser.parseFile("../gcode_files/example.gcode");
+    auto commands = parser.parseFile("../gcode_files/cube.gcode");
 
     std::cout << "Commands loaded: " << commands.size() << "\n";
 

@@ -156,6 +156,7 @@ void OpenGLVisualizer::drawPath3D(const std::vector<GCommand>& commands) {
 
                 lastX = cmd.x;
                 lastY = cmd.y;
+                lastZ = cmd.z;
             }
         }
 

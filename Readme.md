@@ -1,6 +1,6 @@
 # 🛠️ 3D CNC G-Code Interpreter & Visualizer
 
-A modern **3D CNC G-Code Interpreter & Visualizer** that parses CNC G-code files asynchronously and renders the resulting toolpath in an interactive OpenGL window. This project demonstrates **real-world system design**, **modern C++ practices**, and **graphics programming**, making it ideal for learning, demos, and portfolio use.
+A modern **3D CNC G-Code Interpreter & Visualizer** that parses CNC G-code files asynchronously and renders the resulting toolpath in an interactive OpenGL window. This project demonstrates **real-world system design**, **modern C++ practices**, and **graphics programming**, making it ideal for learning.
 
 ![Demo](assets/demo.png)
 *Real-time 3D visualization of CNC toolpaths*
@@ -112,41 +112,54 @@ This project demonstrates professional software engineering practices:
 ### Prerequisites
 
 **Required:**
-- C++17 compatible compiler (GCC 7+, Clang 5+, MSVC 2017+)
+- C++17 compatible compiler 
 - OpenGL 3.3 or higher
 - [GLFW](https://www.glfw.org/) 3.3+
 - [GLEW](http://glew.sourceforge.net/) 2.1+
 
-### Installation
+## 🧰 Environment Setup
 
-#### Windows
-Download and install:
-- [GLFW](https://www.glfw.org/download.html)
-- [GLEW](http://glew.sourceforge.net/)
+### 1️⃣ Install MSYS2
+
+Download and install MSYS2 from:  
+👉 https://www.msys2.org/
+
+After installation, **open the MSYS2 UCRT64 terminal**  
+(do NOT use MinGW64 or MSYS).
 
 ---
 
-## 🔨 Building the Project
+### 2️⃣ Install Dependencies
+
+Run the following command in the **UCRT64 terminal**:
 
 ```bash
-# Clone the repository
+pacman -S --needed \
+    mingw-w64-ucrt-x86_64-gcc \
+    mingw-w64-ucrt-x86_64-glfw \
+    mingw-w64-ucrt-x86_64-glew \
+    mingw-w64-ucrt-x86_64-opengl
+
+
+## 🎯 Quick Start Commands
+
+**Full build and run sequence:**
+
+```bash
+# 1. Clone repository
 git clone https://github.com/praveshmishra-coder/3D-CNC-Gcode-Interpreter-Visualizer
 cd 3D-CNC-Gcode-Interpreter-Visualizer
 
-# Run the application
+# 2. Build
+g++ -std=c++17 \
+    src/main.cpp src/GCodeInterpreter.cpp src/OpenGLVisualizer.cpp \
+    -Iinclude \
+    -lglfw3 -lglew32 -lopengl32 \
+    -o cnc_3d
+
+# 3. Run
 ./cnc_3d.exe
 ```
-
-### Manual Build (Windows)
-
-```cmd
- g++ main.cpp GCodeInterpreter.cpp OpenGLVisualizer.cpp -I../include $(pkg-config --cflags --libs glfw3 glew) -lopengl32 -lglu32 -o cnc_3d
-
- ./cnc_3d.exe
-```
-
----
-
 
 ### Controls
 
@@ -310,9 +323,6 @@ The application handles errors gracefully:
 - [ ] **Tool Visualization** (diameter, shape)
 - [ ] **Collision Detection** (workpiece boundaries)
 - [ ] **Export Options** (STL, OBJ mesh generation)
-- [ ] **Controller Integration** (GRBL, LinuxCNC)
-- [ ] **Material Removal Simulation**
-- [ ] **Multi-axis Support** (4/5-axis machining)
 
 ### Contributions Welcome!
 

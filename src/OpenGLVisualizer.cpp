@@ -1,8 +1,11 @@
-#include "OpenGLVisualizer.h"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
+#include "OpenGLVisualizer.h"
+#include "GLWindow.h"
 #include <iostream>
 #include <cmath>
+#include <algorithm>
 
 // ---------------- CAMERA STATE ----------------
 float camDistance = 120.0f;
@@ -19,7 +22,7 @@ double lastMouseX, lastMouseY;
 size_t playIndex = 0;
 bool isPlaying = true;
 double lastStepTime = 0.0;
-double stepDelay = 0.03;   // seconds per command
+double stepDelay = 0.03;
 
 // ---------------- CALLBACKS ----------------
 void mouse_callback(GLFWwindow*, double xpos, double ypos) {
@@ -35,22 +38,23 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int) {
         if (action == GLFW_PRESS) {
             dragging = true;
             glfwGetCursorPos(window, &lastMouseX, &lastMouseY);
-        } else dragging = false;
+        } else {
+            dragging = false;
+        }
     }
 }
 
 void scroll_callback(GLFWwindow*, double, double yoffset) {
     camDistance -= float(yoffset) * 4.0f;
-    camDistance = std::max(10.0f, std::min(500.0f, camDistance));
+    camDistance = std::clamp(camDistance, 10.0f, 500.0f);
 }
 
 // ---------------- MAIN DRAW ----------------
 void OpenGLVisualizer::drawPath3D(const std::vector<GCommand>& commands) {
 
-    if (!glfwInit()) return;
-
-    GLFWwindow* window = glfwCreateWindow(1100, 850, "3D CNC Simulator", NULL, NULL);
-    glfwMakeContextCurrent(window);
+    // ✅ RAII window
+    GLWindow glWindow(1100, 850, "3D CNC Simulator");
+    GLFWwindow* window = glWindow.get();
 
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
@@ -135,7 +139,7 @@ void OpenGLVisualizer::drawPath3D(const std::vector<GCommand>& commands) {
                 float cx = lastX + cmd.i;
                 float cy = lastY + cmd.j;
 
-                float r = sqrt((lastX - cx)*(lastX - cx) + (lastY - cy)*(lastY - cy));
+                float r = std::hypot(lastX - cx, lastY - cy);
                 float a0 = atan2(lastY - cy, lastX - cx);
                 float a1 = atan2(cmd.y - cy, cmd.x - cx);
 
@@ -146,7 +150,7 @@ void OpenGLVisualizer::drawPath3D(const std::vector<GCommand>& commands) {
                 glBegin(GL_LINE_STRIP);
                 for (int i = 0; i <= 180; i++) {
                     float a = a0 + (a1 - a0) * i / 180.0f;
-                    glVertex3f(cx + cos(a)*r, cy + sin(a)*r, lastZ);
+                    glVertex3f(cx + cos(a) * r, cy + sin(a) * r, lastZ);
                 }
                 glEnd();
 
@@ -158,7 +162,4 @@ void OpenGLVisualizer::drawPath3D(const std::vector<GCommand>& commands) {
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
-    glfwDestroyWindow(window);
-    glfwTerminate();
 }

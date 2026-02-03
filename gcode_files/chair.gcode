@@ -35,6 +35,13 @@ G1 X30 Y30 Z30
 G0 X0 Y30 Z0
 G1 X0 Y30 Z30
 
+; One more square 
+
+G0 X0 Y0 Z0
+G1 X30 Y0 Z0 F200
+G1 X30 Y-30 Z0
+G1 X0 Y-30 Z0
+G1 X0 Y0 Z0
 
 ; ===== Return Home =====
 G0 X0 Y0 Z0
